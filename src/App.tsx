@@ -32,12 +32,17 @@ export default function App() {
         match.awayTeam.name
       )
       setPrediction(result)
-    } catch {
-      setError('Erreur lors de la prédiction')
-      setSelected(null)
-    } finally {
-      setPredicting(null)
-    }
+   } catch (err: any) {
+  const message = err?.response?.data?.error
+    || err?.response?.data?.message
+    || err?.message
+    || 'Erreur inconnue'
+  const details = err?.response?.data?.details
+  setError(details
+    ? message + ' — Service: ' + details.service + ' (HTTP ' + details.status + ')'
+    : message
+  )
+  setSelected(null)
   }
 
   const handleClose = () => {
