@@ -93,7 +93,7 @@ export default function App() {
         </div>
       ) : (
         <>
-          <p className="text-slate-400 mb-6">{matches.length} matchs disponibles</p>
+          <p className="text-slate-400 mb-6">{matches.length} matchs</p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {matches.map((match, i) => (
               <MatchCard
