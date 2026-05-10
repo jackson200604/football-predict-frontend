@@ -24,6 +24,7 @@ export default function App() {
   const handlePredict = async (match: Match) => {
     setPredicting(match.id)
     setSelected(match)
+    setError(null)
     try {
       const result = await getPrediction(
         match.homeTeam.id,
@@ -32,17 +33,21 @@ export default function App() {
         match.awayTeam.name
       )
       setPrediction(result)
-   } catch (err: any) {
-  const message = err?.response?.data?.error
-    || err?.response?.data?.message
-    || err?.message
-    || 'Erreur inconnue'
-  const details = err?.response?.data?.details
-  setError(details
-    ? message + ' — Service: ' + details.service + ' (HTTP ' + details.status + ')'
-    : message
-  )
-  setSelected(null)
+    } catch (err: any) {
+      const data = err?.response?.data
+      const message = data?.error
+        || data?.message
+        || err?.message
+        || 'Erreur inconnue'
+      const details = data?.details
+      setError(details
+        ? message + ' — Service: ' + details.service + ' (HTTP ' + details.status + ')'
+        : message
+      )
+      setSelected(null)
+    } finally {
+      setPredicting(null)
+    }
   }
 
   const handleClose = () => {
@@ -53,7 +58,6 @@ export default function App() {
   return (
     <div className="min-h-screen p-6 max-w-7xl mx-auto">
 
-      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -67,31 +71,53 @@ export default function App() {
         </p>
       </motion.div>
 
-      {/* Erreur */}
       {error && (
-        <div className="bg-red-900/30 border border-red-500 rounded-xl p-4 text-center mb-6">
-          <p className="text-red-400">{error}</p>
+        <div className="bg-red-900/30 border border-red-500 rounded-xl p-4 mb-6">
+          <p className="text-red-400 font-semibold mb-1">❌ Erreur détaillée</p>
+          <p className="text-red-300 text-sm break-all">{error}</p>
           <button
             onClick={() => setError(null)}
-            className="text-red-300 text-sm mt-2 underline"
+            className="text-red-400 text-xs mt-2 underline"
           >
             Fermer
           </button>
         </div>
       )}
 
-      {/* Matchs */}
       {loading ? (
         <Loader />
       ) : matches.length === 0 ? (
         <div className="text-center text-slate-400 mt-20">
           <p className="text-6xl mb-4">⚽</p>
-          <p className="text-xl">Aucun match disponible pour le moment</p>
+          <p className="text-xl">Aucun match disponible</p>
         </div>
       ) : (
         <>
-          <p className="text-slate-400 mb-6">
-            {matches.length} matchs disponibles
+          <p className="text-slate-400 mb-6">{matches.length} matchs disponibles</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {matches.map((match, i) => (
+              <MatchCard
+                key={match.id}
+                match={match}
+                index={i}
+                onPredict={handlePredict}
+                loading={predicting === match.id}
+              />
+            ))}
+          </div>
+        </>
+      )}
+
+      {selected && prediction && (
+        <PredictionModal
+          match={selected}
+          prediction={prediction}
+          onClose={handleClose}
+        />
+      )}
+    </div>
+  )
+    }            {matches.length} matchs disponibles
           </p>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {matches.map((match, i) => (
